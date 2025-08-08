@@ -1,16 +1,14 @@
 // File: app/login/page.tsx
-// Menggunakan fungsi createClient() yang baru dan logika redirect yang sudah diperbaiki.
+// Perbaikan lint: menghapus penggunaan `any` dan menggunakan tipe error yang aman.
 
 'use client';
 
 import { useState, type ComponentProps } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-// Impor fungsi, bukan variabel
 import { createClient } from '../../lib/supabaseClient'; 
 import { LogIn, Loader2, ArrowLeft } from 'lucide-react';
 
-// Komponen Input (tidak berubah)
 function Input(props: ComponentProps<'input'>) {
   return (
     <input
@@ -22,7 +20,6 @@ function Input(props: ComponentProps<'input'>) {
   );
 }
 
-// Komponen Tombol (tidak berubah)
 function Button(props: ComponentProps<'button'>) {
   return (
     <button
@@ -34,7 +31,6 @@ function Button(props: ComponentProps<'button'>) {
 
 export default function LoginPage() {
   const router = useRouter();
-  // Panggil fungsi createClient() untuk membuat instance supabase
   const supabase = createClient(); 
   
   const [email, setEmail] = useState('');
@@ -54,14 +50,15 @@ export default function LoginPage() {
       });
 
       if (error) throw error;
-      
-      // Refresh state server untuk memastikan middleware tahu kita sudah login
-      router.refresh();
-      // Arahkan ke dashboard
-      router.push('/dashboard');
 
-    } catch (err: any) {
-      setError(err.message || 'Terjadi kesalahan. Periksa kembali email dan password Anda.');
+      router.refresh();
+      router.push('/dashboard');
+    } catch (err) {
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError('Terjadi kesalahan. Periksa kembali email dan password Anda.');
+      }
       setLoading(false);
     }
   };
@@ -78,12 +75,12 @@ export default function LoginPage() {
           <form onSubmit={handleLogin} className="space-y-6">
             <div>
               <label htmlFor="email" className="text-sm font-medium text-slate-700">Alamat Email</label>
-              <Input id="email" type="email" required value={email} onChange={(e) => setEmail(e.target.value)} placeholder="anda@email.com" disabled={loading}/>
+              <Input id="email" type="email" required value={email} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEmail(e.target.value)} placeholder="anda@email.com" disabled={loading}/>
             </div>
 
             <div>
               <label htmlFor="password" className="text-sm font-medium text-slate-700">Password</label>
-              <Input id="password" type="password" required value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" disabled={loading}/>
+              <Input id="password" type="password" required value={password} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setPassword(e.target.value)} placeholder="••••••••" disabled={loading}/>
             </div>
 
             <div className="h-5 text-center text-sm">
