@@ -51,8 +51,6 @@ const Footer = () => (
   </footer>
 );
 
-// Gunakan @ts-expect-error untuk mengabaikan konflik tipe yang salah
-// @ts-expect-error
 export default async function ProfileDetailPage({ params }: ProfilePageProps) {
   // ✅ Contoh penggunaan params.id untuk fetching data di Server Component
   // const { id } = params;
