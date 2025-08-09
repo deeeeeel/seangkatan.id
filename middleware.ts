@@ -1,4 +1,4 @@
-import { createMiddlewareClient } from '@supabase/auth-helpers-nextjs';
+import { createMiddlewareClient } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
 
 export async function middleware(request: NextRequest) {
@@ -11,7 +11,7 @@ export async function middleware(request: NextRequest) {
   // Cek sesi user
   const { data: { session } } = await supabase.auth.getSession();
 
-  // Kalau belum login dan route yang di-protect
+  // Redirect jika belum login
   if (!session) {
     return NextResponse.redirect(new URL('/login', request.url));
   }
