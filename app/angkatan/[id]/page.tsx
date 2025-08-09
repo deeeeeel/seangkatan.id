@@ -3,45 +3,44 @@
 import Link from 'next/link';
 import { ArrowLeft, Instagram, Twitter, Globe, Camera, PlayCircle, Heart, X as XIcon } from 'lucide-react';
 import ProfileContent from './ProfileContent';
+// [REVISI] Impor 'notFound' untuk menangani kasus jika data tidak ditemukan.
+import { notFound } from 'next/navigation';
+// [REVISI] Impor Supabase client untuk sisi server. Asumsi path-nya ada di '@/utils/supabase/server'.
+import { createClient } from '@/utils/supabase/server';
 
-// Definisikan interface props secara lokal untuk menghindari konflik tipe
+// Interface untuk props halaman, sudah benar.
 interface ProfilePageProps {
   params: {
     id: string;
   };
 }
 
-const studentDetail = {
-  id: '1',
-  name: 'Amanda Salsabila',
-  class: 'XII IPA 1',
-  img: '/images/profiles/p1.jpg',
-  quote: 'Masa SMA adalah bab terbaik dalam buku kehidupanku, penuh dengan revisi dan sedikit tidur.',
-  gallery: [
-    { id: 1, url: '/images/angkatan/a1.jpg' },
-    { id: 2, url: '/images/angkatan/a2.jpg' },
-    { id: 3, url: '/images/angkatan/a3.jpg' },
-    { id: 4, url: '/images/angkatan/a4.jpg' },
-    { id: 5, url: '/images/angkatan/a5.jpg' },
-    { id: 6, url: '/images/angkatan/a6.jpg' },
-    { id: 7, url: '/images/angkatan/a7.jpg' },
-    { id: 8, url: '/images/angkatan/a8.jpg' },
-    { id: 9, url: '/images/angkatan/a9.jpg' },
-    { id: 10, url: '/images/angkatan/a10.jpg' },
-  ],
-  messages: [
-    { id: 1, user: 'Budi Santoso', text: 'Man, inget gak waktu kita dihukum lari keliling lapangan gara-gara telat upacara? Wkwk.', img: '/images/profiles/p2.jpg', align: 'received', likes: 15 },
-    { id: 2, user: 'Amanda Salsabila', text: 'Hahaha inget banget! Malu-maluin tapi jadi kenangan lucu ya sekarang.', img: '/images/profiles/p1.jpg', align: 'sent', likes: 23 },
-    { id: 3, user: 'Citra Lestari', text: 'Selamat ya Amanda udah jadi juara kelas! Traktirannya jangan lupa!', img: '/images/profiles/p3.jpg', align: 'received', likes: 42 },
-  ],
-  testimonials: [
-    { author: 'Budi S.', text: 'Amanda tuh paling jago kimia, penyelamat pas ulangan!' },
-    { author: 'Citra L.', text: 'Orangnya baik banget, selalu mau bantuin kalau ada yang kesusahan.' },
-    { author: 'Fajar N.', text: 'Paling rajin di kelas, tapi kalau diajak nongkrong juga asik!' },
-    { author: 'Rina A.', text: 'Kalau ada Amanda di kelompok, tugas pasti beres. The best!' },
-    { author: 'Kevin S.', text: 'Jangan lupa bahagia ya, Man! Sukses terus buat ke depannya!' },
-  ]
-};
+// [REVISI] Fungsi async untuk mengambil data detail siswa dari Supabase.
+async function getStudentDetail(id: string) {
+  const supabase = createClient();
+
+  // Ambil data dari tabel 'profiles' (sesuaikan nama tabel jika berbeda)
+  // dengan id yang sesuai. .single() akan mengembalikan 1 baris atau error.
+  const { data: studentDetail, error } = await supabase
+    .from('profiles')
+    .select('*')
+    .eq('id', id)
+    .single();
+
+  // Jika terjadi error saat query (selain data tidak ditemukan), log di server.
+  if (error) {
+    console.error('Database Error:', error.message);
+    // Anda bisa memilih untuk melempar error atau menampilkan halaman notFound.
+    notFound();
+  }
+
+  // Jika tidak ada data yang ditemukan untuk id tersebut, tampilkan halaman 404.
+  if (!studentDetail) {
+    notFound();
+  }
+
+  return studentDetail;
+}
 
 const Footer = () => (
   <footer className="bg-white mt-16">
@@ -52,9 +51,9 @@ const Footer = () => (
 );
 
 export default async function ProfileDetailPage({ params }: ProfilePageProps) {
-  // ✅ Contoh penggunaan params.id untuk fetching data di Server Component
-  // const { id } = params;
-  // const studentDetail = await getStudentDetail(id); // Misalnya, fungsi async untuk ambil data
+  // [REVISI] Panggil fungsi untuk mengambil data secara dinamis berdasarkan params.id
+  // Objek statis 'studentDetail' yang lama sudah dihapus.
+  const studentDetail = await getStudentDetail(params.id);
 
   return (
     <div className="bg-slate-100 min-h-screen">
@@ -65,6 +64,7 @@ export default async function ProfileDetailPage({ params }: ProfilePageProps) {
             <span className="font-semibold">Kembali ke Angkatan</span>
           </Link>
           <div className="text-right">
+            {/* Data nama dan kelas sekarang berasal dari database */}
             <h1 className="text-2xl font-bold text-slate-800">{studentDetail.name}</h1>
             <p className="text-slate-500">{studentDetail.class}</p>
           </div>
@@ -72,6 +72,7 @@ export default async function ProfileDetailPage({ params }: ProfilePageProps) {
       </header>
 
       <main className="container mx-auto px-6 py-8">
+        {/* ProfileContent sekarang menerima data dinamis */}
         <ProfileContent studentDetail={studentDetail} />
       </main>
       <Footer />
