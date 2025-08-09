@@ -1,14 +1,9 @@
-// File: middleware.ts
-// Tujuan: Melindungi halaman agar hanya bisa diakses oleh pengguna yang sudah login.
-
 import { createServerClient, type CookieOptions } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
 
 export async function middleware(request: NextRequest) {
   let response = NextResponse.next({
-    request: {
-      headers: request.headers,
-    },
+    request: { headers: request.headers },
   });
 
   const supabase = createServerClient(
@@ -25,35 +20,26 @@ export async function middleware(request: NextRequest) {
           response.cookies.set({ name, value, ...options });
         },
         remove(name: string, options: CookieOptions) {
-          request.cookies.set({ name, value: '', ...options });
+          request.cookies.delete(name);
           response = NextResponse.next({ request: { headers: request.headers } });
-          response.cookies.set({ name, value: '', ...options });
+          response.cookies.delete(name);
         },
       },
     }
   );
 
+  // Cek sesi user
   const { data: { session } } = await supabase.auth.getSession();
 
-  const { pathname } = request.nextUrl;
-
-  // Jika pengguna belum login dan mencoba mengakses rute yang diproteksi
-  if (!session && pathname.startsWith('/dashboard')) {
+  // Kalau belum login dan route yang di-protect
+  if (!session) {
     return NextResponse.redirect(new URL('/login', request.url));
-  }
-
-  // Jika pengguna sudah login dan mencoba mengakses halaman login
-  if (session && pathname === '/login') {
-    return NextResponse.redirect(new URL('/dashboard', request.url));
   }
 
   return response;
 }
 
-// Konfigurasi: Tentukan halaman mana saja yang akan dijaga oleh middleware ini
+// Hanya jalankan middleware di halaman proteksi
 export const config = {
-  matcher: [
-    '/dashboard/:path*', // Semua halaman di bawah /dashboard
-    '/login',
-  ],
+  matcher: ['/dashboard/:path*', '/angkatan/:path*'],
 };
