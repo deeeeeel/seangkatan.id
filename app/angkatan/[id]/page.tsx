@@ -1,11 +1,16 @@
 // File: app/angkatan/[id]/page.tsx
 
-// Server Component (halaman utama) yang mengambil data dan merender komponen lain
 import Link from 'next/link';
 import { ArrowLeft, Instagram, Twitter, Globe, Camera, PlayCircle, Heart, X as XIcon } from 'lucide-react';
 import ProfileContent from './ProfileContent';
 
-// Data dummy untuk satu siswa
+// Definisikan interface props secara lokal untuk menghindari konflik tipe
+interface ProfilePageProps {
+  params: {
+    id: string;
+  };
+}
+
 const studentDetail = {
   id: '1',
   name: 'Amanda Salsabila',
@@ -46,22 +51,11 @@ const Footer = () => (
   </footer>
 );
 
-export default async function ProfileDetailPage({ params }: { params: { id: string } }) {
+// Gunakan interface yang baru dibuat di sini
+export default async function ProfileDetailPage({ params }: ProfilePageProps) {
   // ✅ Contoh penggunaan params.id untuk fetching data di Server Component
   // const { id } = params;
   // const studentDetail = await getStudentDetail(id); // Misalnya, fungsi async untuk ambil data
-
-  // Catatan: Jika ingin menggunakan animasi marquee, pindahkan @keyframes marquee ke file globals.css
-  // Misalnya: app/globals.css
-  /*
-  @keyframes marquee {
-    0% { transform: translateX(0%); }
-    100% { transform: translateX(-50%); }
-  }
-  .animate-marquee {
-    animation: marquee 40s linear infinite;
-  }
-  */
 
   return (
     <div className="bg-slate-100 min-h-screen">
@@ -79,7 +73,6 @@ export default async function ProfileDetailPage({ params }: { params: { id: stri
       </header>
 
       <main className="container mx-auto px-6 py-8">
-        {/* Konten utama yang interaktif dipindahkan ke Client Component */}
         <ProfileContent studentDetail={studentDetail} />
       </main>
       <Footer />
