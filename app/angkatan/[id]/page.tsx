@@ -1,41 +1,27 @@
 // File: app/angkatan/[id]/page.tsx
 
 import Link from 'next/link';
-import { ArrowLeft, Instagram, Twitter, Globe, Camera, PlayCircle, Heart, X as XIcon } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
 import ProfileContent from './ProfileContent';
-// [REVISI] Impor 'notFound' untuk menangani kasus jika data tidak ditemukan.
 import { notFound } from 'next/navigation';
-// [REVISI] Impor Supabase client untuk sisi server. Asumsi path-nya ada di '@/utils/supabase/server'.
 import { createClient } from '@/utils/supabase/server';
 
-// Interface untuk props halaman, sudah benar.
+// [FIX] Definisi tipe props yang benar untuk halaman Next.js
 interface ProfilePageProps {
   params: {
     id: string;
   };
 }
 
-// [REVISI] Fungsi async untuk mengambil data detail siswa dari Supabase.
 async function getStudentDetail(id: string) {
   const supabase = createClient();
-
-  // Ambil data dari tabel 'profiles' (sesuaikan nama tabel jika berbeda)
-  // dengan id yang sesuai. .single() akan mengembalikan 1 baris atau error.
   const { data: studentDetail, error } = await supabase
     .from('profiles')
     .select('*')
     .eq('id', id)
     .single();
 
-  // Jika terjadi error saat query (selain data tidak ditemukan), log di server.
-  if (error) {
-    console.error('Database Error:', error.message);
-    // Anda bisa memilih untuk melempar error atau menampilkan halaman notFound.
-    notFound();
-  }
-
-  // Jika tidak ada data yang ditemukan untuk id tersebut, tampilkan halaman 404.
-  if (!studentDetail) {
+  if (error || !studentDetail) {
     notFound();
   }
 
@@ -51,8 +37,6 @@ const Footer = () => (
 );
 
 export default async function ProfileDetailPage({ params }: ProfilePageProps) {
-  // [REVISI] Panggil fungsi untuk mengambil data secara dinamis berdasarkan params.id
-  // Objek statis 'studentDetail' yang lama sudah dihapus.
   const studentDetail = await getStudentDetail(params.id);
 
   return (
@@ -64,7 +48,6 @@ export default async function ProfileDetailPage({ params }: ProfilePageProps) {
             <span className="font-semibold">Kembali ke Angkatan</span>
           </Link>
           <div className="text-right">
-            {/* Data nama dan kelas sekarang berasal dari database */}
             <h1 className="text-2xl font-bold text-slate-800">{studentDetail.name}</h1>
             <p className="text-slate-500">{studentDetail.class}</p>
           </div>
@@ -72,7 +55,6 @@ export default async function ProfileDetailPage({ params }: ProfilePageProps) {
       </header>
 
       <main className="container mx-auto px-6 py-8">
-        {/* ProfileContent sekarang menerima data dinamis */}
         <ProfileContent studentDetail={studentDetail} />
       </main>
       <Footer />
